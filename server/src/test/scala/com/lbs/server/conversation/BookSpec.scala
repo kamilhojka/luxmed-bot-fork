@@ -163,6 +163,27 @@ class BookSpec extends AkkaTestKit {
         succeed
       }
 
+      "create monitoring directly without searching for available terms" in {
+        val dp = ConversationTestProbe[DatePicker]()
+        val tp = ConversationTestProbe[TimePicker]()
+        val sp = ConversationTestProbe[StaticData]()
+        val pp = ConversationTestProbe[Pager[TermExt]]()
+        val apiService        = makeApiService
+        val dataService       = makeDataService
+        val monitoringService = makeMonitoringService
+        doNothing().when(dataService).storeAppointment(any(), any())
+        when(dataService.findSettings(anyLong())).thenReturn(None)
+        val book = makeBook(apiService = apiService, dataService = dataService,
+                            monitoringService = monitoringService)(dp, tp, sp, pp)
+        book.start()
+        selectStaticData(book)
+        selectDates(book)
+        book ! callbackCmd(Tags.CreateMonitoring)
+        book ! callbackCmd(Tags.BookManually)
+        awaitAssert(verify(monitoringService).createMonitoring(any()))
+        verifyNoInteractions(apiService)
+      }
+
       "delete temporary reservation when Cancel is clicked" in {
         val dp = ConversationTestProbe[DatePicker]()
         val tp = ConversationTestProbe[TimePicker]()

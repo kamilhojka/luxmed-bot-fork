@@ -149,12 +149,19 @@ class Book(
       bot.sendMessage(
         userId.source,
         lang.bookingSummary(bookingData),
-        inlineKeyboard =
-          createInlineKeyboard(Seq(Button(lang.findTerms, Tags.FindTerms), Button(lang.modifyDate, Tags.ModifyDate)))
+        inlineKeyboard = createInlineKeyboard(
+          Seq(
+            Button(lang.findTerms, Tags.FindTerms),
+            Button(lang.createMonitoring, Tags.CreateMonitoring),
+            Button(lang.modifyDate, Tags.ModifyDate)
+          )
+        )
       )
     } onReply {
       case Msg(CallbackCommand(Tags.FindTerms), _) =>
         goto(requestTerm)
+      case Msg(CallbackCommand(Tags.CreateMonitoring), bookingData) =>
+        startMonitoring(bookingData)
       case Msg(CallbackCommand(Tags.ModifyDate), bookingData) =>
         goto(requestDateFrom).using(bookingData.copy(
           dateFrom = LocalDateTime.now(),
@@ -242,15 +249,19 @@ class Book(
           dateTo = LocalDateTime.now().plusDays(1L)
         ))
       case Msg(CallbackCommand(Tags.CreateMonitoring), bookingData) =>
-        val settingsMaybe = dataService.findSettings(userId.userId)
-        val (defaultOffset, askOffset) = settingsMaybe match {
-          case Some(settings) => (settings.defaultOffset, settings.alwaysAskOffset)
-          case None           => (0, false)
-        }
-        val newData = bookingData.copy(offset = defaultOffset)
-        if (askOffset) goto(askMonitoringOffsetOption).using(newData)
-        else goto(askMonitoringAutobookOption).using(newData)
+        startMonitoring(bookingData)
     }
+
+  private def startMonitoring(bookingData: BookingData) = {
+    val settingsMaybe = dataService.findSettings(userId.userId)
+    val (defaultOffset, askOffset) = settingsMaybe match {
+      case Some(settings) => (settings.defaultOffset, settings.alwaysAskOffset)
+      case None           => (0, false)
+    }
+    val newData = bookingData.copy(offset = defaultOffset)
+    if (askOffset) goto(askMonitoringOffsetOption).using(newData)
+    else goto(askMonitoringAutobookOption).using(newData)
+  }
 
   private def awaitRebookDecision: Step =
     monologue {
