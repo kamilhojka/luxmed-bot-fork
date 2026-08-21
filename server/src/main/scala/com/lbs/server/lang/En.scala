@@ -286,12 +286,13 @@ object En extends Lang {
        |""".stripMargin
 
   override def availableTermsHeader(size: Int): String =
-    s"""✅ <b>$size</b> terms have been found. We've shown you the closest 5.
+    s"""✅ Monitoring found <b>$size</b> better terms. We've shown you the closest 5.
        |
-       |<b>➡</b> Please choose one to reserve""".stripMargin
+       |<b>➡</b> Please choose one to reserve.
+       |Monitoring remains active and will notify you only about an earlier term.""".stripMargin
 
-  override def nothingWasFoundByMonitoring(monitoring: Monitoring): String =
-    s"""❗ Nothing has been found. Monitoring has been <b>disabled</b> as outdated.
+  override def monitoringExpired(monitoring: Monitoring): String =
+    s"""❗ The monitoring date range has ended. Monitoring has been <b>disabled</b>.
        |
        |📅 <b>${formatDate(monitoring.dateFrom, locale)}</b> -> <b>${formatDate(monitoring.dateTo, locale)}</b>
        |⏱ <b>${formatTime(monitoring.timeFrom)}</b> -> <b>${formatTime(monitoring.timeTo)}</b>

@@ -288,12 +288,13 @@ object Pl extends Lang {
        |""".stripMargin
 
   override def availableTermsHeader(size: Int): String =
-    s"""✅ Monitoring znalazł <b>$size</b> terminów. Pokazujemy Ci najbliszych 5.
+    s"""✅ Monitoring znalazł <b>$size</b> lepszych terminów. Pokazujemy Ci najbliższych 5.
        |
-       |<b>➡</b> Wybierz jeden, by go zarezerwować""".stripMargin
+       |<b>➡</b> Wybierz jeden, by go zarezerwować.
+       |Monitoring pozostaje aktywny i powiadomi Cię tylko o wcześniejszym terminie.""".stripMargin
 
-  override def nothingWasFoundByMonitoring(monitoring: Monitoring): String =
-    s"""❗ Monitoring nie znalazł terminów i został <b>wyłączony</b> jako przeterminowany.
+  override def monitoringExpired(monitoring: Monitoring): String =
+    s"""❗ Zakres dat monitoringu minął. Monitoring został <b>wyłączony</b>.
        |
        |📅 <b>${formatDate(monitoring.dateFrom, locale)}</b> -> <b>${formatDate(monitoring.dateTo, locale)}</b>
        |⏱ <b>${formatTime(monitoring.timeFrom)}</b> -> <b>${formatTime(monitoring.timeTo)}</b>

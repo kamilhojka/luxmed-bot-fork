@@ -2,7 +2,7 @@ package com.lbs.server.repository.model
 
 import jakarta.persistence.{Access, AccessType, Column, Entity}
 
-import java.time.{LocalTime, ZonedDateTime}
+import java.time.{LocalDateTime, LocalTime, ZonedDateTime}
 import scala.beans.BeanProperty
 import scala.compiletime.uninitialized
 import scala.language.implicitConversions
@@ -117,6 +117,10 @@ class Monitoring extends RecordId {
   @BeanProperty
   @Column(name = "service_variant_id", nullable = true)
   var serviceVariantId: JLong = uninitialized
+
+  @BeanProperty
+  @Column(name = "best_term_date_time", nullable = true)
+  var bestTermDateTime: LocalDateTime = uninitialized
 }
 
 object Monitoring {
@@ -147,7 +151,8 @@ object Monitoring {
     isRehab: Boolean = false,
     referralId: Option[Long] = None,
     referralTypeId: Option[Int] = None,
-    serviceVariantId: Option[Long] = None
+    serviceVariantId: Option[Long] = None,
+    bestTermDateTime: Option[LocalDateTime] = None
   ): Monitoring = {
     val monitoring = new Monitoring
     monitoring.userId = userId
@@ -177,6 +182,7 @@ object Monitoring {
     monitoring.referralId = referralId.map(Long.box).orNull
     monitoring.referralTypeId = referralTypeId.map(Int.box).orNull
     monitoring.serviceVariantId = serviceVariantId.map(Long.box).orNull
+    monitoring.bestTermDateTime = bestTermDateTime.orNull
     monitoring
   }
 }

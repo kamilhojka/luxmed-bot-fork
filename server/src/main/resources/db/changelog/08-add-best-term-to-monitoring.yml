@@ -1,0 +1,17 @@
+databaseChangeLog:
+- changeSet:
+    id: 08
+    author: kamilhojka
+    preConditions:
+      onFail: MARK_RAN
+      not:
+        columnExists:
+          tableName: monitoring
+          columnName: best_term_date_time
+    changes:
+    - addColumn:
+        tableName: monitoring
+        columns:
+        - column:
+            name: best_term_date_time
+            type: TIMESTAMP WITHOUT TIME ZONE

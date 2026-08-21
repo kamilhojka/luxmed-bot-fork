@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-import java.time.ZonedDateTime
+import java.time.{LocalDateTime, LocalTime, ZonedDateTime}
 
 object DataRepositorySpec {
 
@@ -100,5 +100,38 @@ class DataRepositorySpec {
 
     val found = dataRepository.getUserCredentials(1L)
     assertThat(found).isEqualTo(Seq(credentials))
+  }
+
+  @Test
+  def whenPersistMonitoring_thenKeepBestTermDateTime(): Unit = {
+    val bestTermDateTime = LocalDateTime.of(2026, 9, 10, 9, 30)
+    val monitoring = Monitoring(
+      userId = 1L,
+      username = "testuser",
+      accountId = 1L,
+      chatId = "1",
+      sourceSystemId = 1L,
+      payerId = 1L,
+      cityId = 1L,
+      cityName = "Krakow",
+      clinicId = Some(10L),
+      clinicName = "Clinic",
+      serviceId = 100L,
+      serviceName = "Consultation",
+      doctorId = None,
+      doctorName = "Any",
+      dateFrom = ZonedDateTime.now(),
+      dateTo = ZonedDateTime.now().plusMonths(1),
+      timeFrom = LocalTime.of(7, 0),
+      timeTo = LocalTime.of(21, 0),
+      offset = 0,
+      bestTermDateTime = Some(bestTermDateTime)
+    )
+
+    val saved = em.persistAndFlush(monitoring)
+    em.clear()
+
+    val found = em.find(classOf[Monitoring], saved.recordId)
+    assertThat(found.bestTermDateTime).isEqualTo(bestTermDateTime)
   }
 }

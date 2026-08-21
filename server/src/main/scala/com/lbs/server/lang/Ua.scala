@@ -286,12 +286,13 @@ object Ua extends Lang {
        |""".stripMargin
 
   override def availableTermsHeader(size: Int): String =
-    s"""✅ <b>$size</b> термінів було знайдено за допомогою моніторінгу. Ми показали вам найближчі 5.
+    s"""✅ Моніторинг знайшов <b>$size</b> кращих термінів. Ми показали вам найближчі 5.
        |
-       |<b>➡</b> Будь ласка, оберіть один щоб зарезервувати""".stripMargin
+       |<b>➡</b> Будь ласка, оберіть один, щоб зарезервувати.
+       |Моніторинг залишається активним і повідомить лише про раніший термін.""".stripMargin
 
-  override def nothingWasFoundByMonitoring(monitoring: Monitoring): String =
-    s"""❗ Нічого не знайдено за вашим моніторингом. Моніторинг був <b>вимкнений</b> як застарілий.
+  override def monitoringExpired(monitoring: Monitoring): String =
+    s"""❗ Діапазон дат моніторингу завершився. Моніторинг було <b>вимкнено</b>.
        |
        |📅 <b>${formatDate(monitoring.dateFrom, locale)}</b> -> <b>${formatDate(monitoring.dateTo, locale)}</b>
        |⏱ <b>${formatTime(monitoring.timeFrom)}</b> -> <b>${formatTime(monitoring.timeTo)}</b>

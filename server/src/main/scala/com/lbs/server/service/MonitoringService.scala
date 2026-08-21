@@ -26,13 +26,13 @@ import scala.util.Random
 class MonitoringService extends StrictLogging {
 
   @Autowired
-  private var bot: Bot = uninitialized
+  private[service] var bot: Bot = uninitialized
   @Autowired
-  private var dataService: DataService = uninitialized
+  private[service] var dataService: DataService = uninitialized
   @Autowired
-  private var apiService: ApiService = uninitialized
+  private[service] var apiService: ApiService = uninitialized
   @Autowired
-  private var localization: Localization = uninitialized
+  private[service] var localization: Localization = uninitialized
 
   private var activeMonitorings = mutable.Map.empty[JLong, (Monitoring, ScheduledFuture[?])]
 
@@ -53,8 +53,6 @@ class MonitoringService extends StrictLogging {
   private var checkedOn: ZonedDateTime = uninitialized
 
   def notifyUserAboutTerms(terms: Seq[TermExt], monitoring: Monitoring): Unit = {
-    deactivateMonitoring(monitoring.accountId, monitoring.recordId)
-
     val fiveTerms = terms.take(5).zipWithIndex // send only 5 closest terms
     val messages = lang(monitoring.userId)
 
@@ -64,6 +62,27 @@ class MonitoringService extends StrictLogging {
       }.mkString
 
     bot.sendMessage(monitoring.source, message)
+  }
+
+  private[service] def handleAvailableTerms(terms: Seq[TermExt], monitoring: Monitoring): Unit = {
+    val sortedTerms = terms.sortBy(_.term.dateTimeFrom.get)
+    val betterTerms = Option(monitoring.bestTermDateTime) match {
+      case Some(bestTermDateTime) => sortedTerms.filter(_.term.dateTimeFrom.get.isBefore(bestTermDateTime))
+      case None                   => sortedTerms
+    }
+
+    if (betterTerms.nonEmpty) {
+      logger.debug(s"Found ${betterTerms.length} better terms by monitoring [#${monitoring.recordId}]")
+      if (monitoring.autobook) {
+        bookAppointment(betterTerms.head, monitoring, monitoring.rebookIfExists)
+      } else {
+        notifyUserAboutTerms(betterTerms, monitoring)
+        monitoring.bestTermDateTime = betterTerms.head.term.dateTimeFrom.get
+        dataService.saveMonitoring(monitoring)
+      }
+    } else {
+      logger.debug(s"No better terms found for monitoring [#${monitoring.recordId}]")
+    }
   }
 
   private def monitor(monitoring: Monitoring): Unit = {
@@ -100,13 +119,7 @@ class MonitoringService extends StrictLogging {
     termsEither match {
       case Right(terms) =>
         if (terms.nonEmpty) {
-          logger.debug(s"Found ${terms.length} terms by monitoring [#${monitoring.recordId}]")
-          if (monitoring.autobook) {
-            val term = terms.head
-            bookAppointment(term, monitoring, monitoring.rebookIfExists)
-          } else {
-            notifyUserAboutTerms(terms, monitoring)
-          }
+          handleAvailableTerms(terms, monitoring)
         } else {
           logger.debug(s"No new terms found for monitoring [#${monitoring.recordId}]")
         }
@@ -150,8 +163,8 @@ class MonitoringService extends StrictLogging {
     initializeMonitorings(monitorings)
   }
 
-  def notifyChatAboutDisabledMonitoring(monitoring: Monitoring): Unit = {
-    bot.sendMessage(monitoring.source, lang(monitoring.userId).nothingWasFoundByMonitoring(monitoring))
+  def notifyChatAboutExpiredMonitoring(monitoring: Monitoring): Unit = {
+    bot.sendMessage(monitoring.source, lang(monitoring.userId).monitoringExpired(monitoring))
   }
 
   private def disableOutdated(): Unit = {
@@ -163,7 +176,7 @@ class MonitoringService extends StrictLogging {
 
     toDisable.foreach { case (id, monitoring) =>
       logger.debug(s"Monitoring [#$id] is going to be disable as outdated")
-      notifyChatAboutDisabledMonitoring(monitoring)
+      notifyChatAboutExpiredMonitoring(monitoring)
       deactivateMonitoring(monitoring.accountId, id)
     }
   }

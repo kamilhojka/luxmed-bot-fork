@@ -185,7 +185,7 @@ trait Lang {
 
   def availableTermsHeader(size: Int): String
 
-  def nothingWasFoundByMonitoring(monitoring: Monitoring): String
+  def monitoringExpired(monitoring: Monitoring): String
 
   def appointmentIsBooked(term: TermExt, monitoring: Monitoring): String
 
