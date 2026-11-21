@@ -93,7 +93,9 @@ class MonitoringService extends StrictLogging {
         apiService.getAvailableRehabTerms(
           monitoring.accountId,
           monitoring.cityId,
+          monitoring.cityName,
           monitoring.serviceVariantId,
+          Option(monitoring.serviceInstanceId).map(_.toLong).getOrElse(0L),
           monitoring.referralId,
           monitoring.referralTypeId,
           dateFrom,

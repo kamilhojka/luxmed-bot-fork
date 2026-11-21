@@ -103,7 +103,7 @@ class DataRepositorySpec {
   }
 
   @Test
-  def whenPersistMonitoring_thenKeepBestTermDateTime(): Unit = {
+  def whenPersistMonitoring_thenKeepBestTermAndServiceInstance(): Unit = {
     val bestTermDateTime = LocalDateTime.of(2026, 9, 10, 9, 30)
     val monitoring = Monitoring(
       userId = 1L,
@@ -125,7 +125,8 @@ class DataRepositorySpec {
       timeFrom = LocalTime.of(7, 0),
       timeTo = LocalTime.of(21, 0),
       offset = 0,
-      bestTermDateTime = Some(bestTermDateTime)
+      bestTermDateTime = Some(bestTermDateTime),
+      serviceInstanceId = Some(123L)
     )
 
     val saved = em.persistAndFlush(monitoring)
@@ -133,5 +134,6 @@ class DataRepositorySpec {
 
     val found = em.find(classOf[Monitoring], saved.recordId)
     assertThat(found.bestTermDateTime).isEqualTo(bestTermDateTime)
+    assertThat(found.serviceInstanceId.longValue()).isEqualTo(123L)
   }
 }

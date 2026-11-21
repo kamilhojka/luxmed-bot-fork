@@ -121,6 +121,10 @@ class Monitoring extends RecordId {
   @BeanProperty
   @Column(name = "best_term_date_time", nullable = true)
   var bestTermDateTime: LocalDateTime = uninitialized
+
+  @BeanProperty
+  @Column(name = "service_instance_id", nullable = true)
+  var serviceInstanceId: JLong = uninitialized
 }
 
 object Monitoring {
@@ -152,7 +156,8 @@ object Monitoring {
     referralId: Option[Long] = None,
     referralTypeId: Option[Int] = None,
     serviceVariantId: Option[Long] = None,
-    bestTermDateTime: Option[LocalDateTime] = None
+    bestTermDateTime: Option[LocalDateTime] = None,
+    serviceInstanceId: Option[Long] = None
   ): Monitoring = {
     val monitoring = new Monitoring
     monitoring.userId = userId
@@ -183,6 +188,7 @@ object Monitoring {
     monitoring.referralTypeId = referralTypeId.map(Int.box).orNull
     monitoring.serviceVariantId = serviceVariantId.map(Long.box).orNull
     monitoring.bestTermDateTime = bestTermDateTime.orNull
+    monitoring.serviceInstanceId = serviceInstanceId.map(Long.box).orNull
     monitoring
   }
 }
