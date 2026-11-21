@@ -9,6 +9,11 @@ services:
     volumes:
     - lbs:/lbs
     restart: unless-stopped
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   database:
     image: arm64v8/postgres:10.7
